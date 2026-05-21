@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace HydrogenEyeCare;
 
 public sealed class TrayAppContext : ApplicationContext
@@ -15,6 +17,7 @@ public sealed class TrayAppContext : ApplicationContext
     private readonly ToolStripMenuItem _mutedMenuItem;
     private readonly ToolStripMenuItem _pauseMenuItem;
     private readonly ToolStripMenuItem _restNowMenuItem;
+    private readonly ToolStripMenuItem _aboutMenuItem;
     private readonly ToolStripMenuItem _exitMenuItem;
     private AppConfig _config;
     private RestReminderForm? _restForm;
@@ -43,6 +46,9 @@ public sealed class TrayAppContext : ApplicationContext
         _restNowMenuItem = new ToolStripMenuItem("立即休息");
         _restNowMenuItem.Click += (_, _) => _controller.StartRestNow();
 
+        _aboutMenuItem = new ToolStripMenuItem("关于氢护眼");
+        _aboutMenuItem.Click += (_, _) => ShowAbout();
+
         _exitMenuItem = new ToolStripMenuItem("退出程序");
         _exitMenuItem.Click += (_, _) => ExitThread();
 
@@ -55,6 +61,7 @@ public sealed class TrayAppContext : ApplicationContext
             _pauseMenuItem,
             _restNowMenuItem,
             new ToolStripSeparator(),
+            _aboutMenuItem,
             _exitMenuItem
         ]);
 
@@ -178,5 +185,18 @@ public sealed class TrayAppContext : ApplicationContext
     private static string TruncateTooltip(string text)
     {
         return text.Length <= 63 ? text : text[..63];
+    }
+
+    private static string GetAppVersion()
+    {
+        return Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion ?? "1.0.0";
+    }
+
+    private static void ShowAbout()
+    {
+        using var aboutForm = new AboutForm(GetAppVersion());
+        aboutForm.ShowDialog();
     }
 }
