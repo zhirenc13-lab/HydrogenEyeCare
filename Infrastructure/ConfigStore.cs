@@ -9,17 +9,31 @@ public sealed class ConfigStore
         WriteIndented = true
     };
 
+    private readonly string _configFilePath;
+    private readonly Action<string> _ensureDirectory;
+
+    public ConfigStore()
+        : this(AppPaths.ConfigFilePath, path => Directory.CreateDirectory(path))
+    {
+    }
+
+    public ConfigStore(string configFilePath, Action<string> ensureDirectory)
+    {
+        _configFilePath = configFilePath;
+        _ensureDirectory = ensureDirectory;
+    }
+
     public AppConfig Load()
     {
         try
         {
-            AppPaths.EnsureAppDataDirectory();
-            if (!File.Exists(AppPaths.ConfigFilePath))
+            EnsureConfigDirectory();
+            if (!File.Exists(_configFilePath))
             {
                 return CreateDefaultConfig();
             }
 
-            var json = File.ReadAllText(AppPaths.ConfigFilePath);
+            var json = File.ReadAllText(_configFilePath);
             var config = JsonSerializer.Deserialize<AppConfig>(json) ?? CreateDefaultConfig();
             config.Normalize();
             return config;
@@ -32,10 +46,19 @@ public sealed class ConfigStore
 
     public void Save(AppConfig config)
     {
-        AppPaths.EnsureAppDataDirectory();
+        EnsureConfigDirectory();
         config.Normalize();
         var json = JsonSerializer.Serialize(config, JsonOptions);
-        File.WriteAllText(AppPaths.ConfigFilePath, json);
+        File.WriteAllText(_configFilePath, json);
+    }
+
+    private void EnsureConfigDirectory()
+    {
+        var directoryPath = Path.GetDirectoryName(_configFilePath);
+        if (!string.IsNullOrWhiteSpace(directoryPath))
+        {
+            _ensureDirectory(directoryPath);
+        }
     }
 
     private static AppConfig CreateDefaultConfig()
