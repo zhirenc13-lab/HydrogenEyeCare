@@ -145,16 +145,15 @@ public sealed class TrayAppContext : ApplicationContext
     {
         var item = new ToolStripMenuItem(ThemePalette.FromTheme(theme).DisplayName)
         {
-            CheckOnClick = true,
             Tag = theme
         };
-        item.CheckedChanged += (_, _) => SelectThemeFromMenu(item);
+        item.Click += (_, _) => SelectThemeFromMenu(item);
         return item;
     }
 
     private void SelectThemeFromMenu(ToolStripMenuItem item)
     {
-        if (_syncingThemeMenu || !item.Checked || item.Tag is not AppTheme theme)
+        if (_syncingThemeMenu || item.Tag is not AppTheme theme)
         {
             return;
         }
