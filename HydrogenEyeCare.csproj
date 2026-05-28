@@ -26,4 +26,8 @@
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="HydrogenEyeCare.Tests\**\*.cs" />
+  </ItemGroup>
+
 </Project>
