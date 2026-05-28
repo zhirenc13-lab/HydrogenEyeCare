@@ -9,6 +9,7 @@ public sealed class TrayAppContext : ApplicationContext
     private readonly StartupRegistry _startupRegistry = new();
     private readonly SoundPlayerService _soundPlayer = new();
     private readonly EyeCareController _controller = new();
+    private readonly DailyRestStats _dailyRestStats = new();
     private readonly SystemEventsWatcher _systemEventsWatcher = new();
     private readonly NotifyIcon _notifyIcon;
     private readonly Icon _workingIcon;
@@ -203,6 +204,7 @@ public sealed class TrayAppContext : ApplicationContext
                 _soundPlayer.PlayRestEnded();
             }
 
+            _dailyRestStats.IncrementSuccessfulRest();
             _controller.CompleteRest();
         };
         form.DelayRequested += (_, _) => _controller.DelayRest();
@@ -245,9 +247,12 @@ public sealed class TrayAppContext : ApplicationContext
             ?.InformationalVersion ?? "1.0.0";
     }
 
-    private static void ShowAbout()
+    private void ShowAbout()
     {
-        using var aboutForm = new AboutForm(GetAppVersion());
+        using var aboutForm = new AboutForm(
+            GetAppVersion(),
+            _dailyRestStats.SuccessfulRestsToday,
+            CurrentThemePalette);
         aboutForm.ShowDialog();
     }
 }
