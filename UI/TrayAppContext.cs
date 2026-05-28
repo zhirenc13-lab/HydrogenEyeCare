@@ -15,6 +15,10 @@ public sealed class TrayAppContext : ApplicationContext
     private readonly Icon _pausedIcon;
     private readonly ToolStripMenuItem _startupMenuItem;
     private readonly ToolStripMenuItem _mutedMenuItem;
+    private readonly ToolStripMenuItem _themeMenuItem;
+    private readonly ToolStripMenuItem _forestGreenMenuItem;
+    private readonly ToolStripMenuItem _mistBlueMenuItem;
+    private readonly ToolStripMenuItem _rockGrayMenuItem;
     private readonly ToolStripMenuItem _pauseMenuItem;
     private readonly ToolStripMenuItem _restNowMenuItem;
     private readonly ToolStripMenuItem _aboutMenuItem;
@@ -22,6 +26,7 @@ public sealed class TrayAppContext : ApplicationContext
     private AppConfig _config;
     private RestReminderForm? _restForm;
     private bool _syncingStartupMenu;
+    private bool _syncingThemeMenu;
 
     public TrayAppContext(ErrorLogger logger)
     {
@@ -40,6 +45,17 @@ public sealed class TrayAppContext : ApplicationContext
         _mutedMenuItem.Checked = _config.Muted;
         _mutedMenuItem.CheckedChanged += (_, _) => ToggleMuted();
 
+        _themeMenuItem = new ToolStripMenuItem("界面主题");
+        _forestGreenMenuItem = CreateThemeMenuItem(AppTheme.ForestGreen);
+        _mistBlueMenuItem = CreateThemeMenuItem(AppTheme.MistBlue);
+        _rockGrayMenuItem = CreateThemeMenuItem(AppTheme.RockGray);
+        _themeMenuItem.DropDownItems.AddRange(
+        [
+            _forestGreenMenuItem,
+            _mistBlueMenuItem,
+            _rockGrayMenuItem
+        ]);
+
         _pauseMenuItem = new ToolStripMenuItem("暂停计时");
         _pauseMenuItem.Click += (_, _) => TogglePause();
 
@@ -57,6 +73,7 @@ public sealed class TrayAppContext : ApplicationContext
         [
             _startupMenuItem,
             _mutedMenuItem,
+            _themeMenuItem,
             new ToolStripSeparator(),
             _pauseMenuItem,
             _restNowMenuItem,
@@ -78,6 +95,7 @@ public sealed class TrayAppContext : ApplicationContext
         _controller.RestRequested += (_, e) => ShowRestReminder(e);
         _systemEventsWatcher.UserReturnedOrRested += (_, _) => ResetAfterSystemRest();
 
+        SyncThemeMenu();
         _controller.Start();
         UpdateTrayStatus();
     }
@@ -123,6 +141,40 @@ public sealed class TrayAppContext : ApplicationContext
         _configStore.Save(_config);
     }
 
+    private ToolStripMenuItem CreateThemeMenuItem(AppTheme theme)
+    {
+        var item = new ToolStripMenuItem(ThemePalette.FromTheme(theme).DisplayName)
+        {
+            CheckOnClick = true,
+            Tag = theme
+        };
+        item.CheckedChanged += (_, _) => SelectThemeFromMenu(item);
+        return item;
+    }
+
+    private void SelectThemeFromMenu(ToolStripMenuItem item)
+    {
+        if (_syncingThemeMenu || !item.Checked || item.Tag is not AppTheme theme)
+        {
+            return;
+        }
+
+        _config.Theme = theme;
+        _configStore.Save(_config);
+        SyncThemeMenu();
+    }
+
+    private void SyncThemeMenu()
+    {
+        _syncingThemeMenu = true;
+        _forestGreenMenuItem.Checked = _config.Theme == AppTheme.ForestGreen;
+        _mistBlueMenuItem.Checked = _config.Theme == AppTheme.MistBlue;
+        _rockGrayMenuItem.Checked = _config.Theme == AppTheme.RockGray;
+        _syncingThemeMenu = false;
+    }
+
+    private ThemePalette CurrentThemePalette => ThemePalette.FromTheme(_config.Theme);
+
     private void TogglePause()
     {
         if (_controller.State == AppState.Paused)
@@ -144,7 +196,7 @@ public sealed class TrayAppContext : ApplicationContext
             _soundPlayer.PlayRestStarted();
         }
 
-        var form = new RestReminderForm(e.Duration, e.CanDelay, e.RemainingDelays);
+        var form = new RestReminderForm(e.Duration, e.CanDelay, e.RemainingDelays, CurrentThemePalette);
         form.RestCompleted += (_, _) =>
         {
             if (!_config.Muted)

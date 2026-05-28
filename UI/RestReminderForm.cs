@@ -19,17 +19,19 @@ public sealed class RestReminderForm : Form
     private readonly DateTime _startedAt;
     private readonly Label _countdownLabel;
     private readonly Button _delayButton;
+    private readonly Color _borderColor;
 
-    public RestReminderForm(TimeSpan duration, bool canDelay, int remainingDelays)
+    public RestReminderForm(TimeSpan duration, bool canDelay, int remainingDelays, ThemePalette palette)
     {
         _duration = duration;
         _startedAt = DateTime.UtcNow;
+        _borderColor = palette.BorderColor;
 
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
-        BackColor = Color.White;
+        BackColor = palette.WindowBackColor;
         Opacity = 0.96;
         ClientSize = new Size(WindowWidth, WindowHeight);
         Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
@@ -69,7 +71,6 @@ public sealed class RestReminderForm : Form
         {
             Text = canDelay ? $"延迟 5 分钟（剩 {remainingDelays} 次）" : "已达到上限",
             Enabled = canDelay,
-            FlatStyle = FlatStyle.System,
             Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Regular, GraphicsUnit.Point),
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
@@ -83,6 +84,14 @@ public sealed class RestReminderForm : Form
             DelayRequested?.Invoke(this, EventArgs.Empty);
             Close();
         };
+
+        titleLabel.ForeColor = palette.TitleColor;
+        _countdownLabel.ForeColor = palette.CountdownColor;
+        promptLabel.ForeColor = palette.PromptColor;
+        _delayButton.BackColor = palette.ButtonBackColor;
+        _delayButton.ForeColor = palette.ButtonTextColor;
+        _delayButton.FlatStyle = FlatStyle.Flat;
+        _delayButton.FlatAppearance.BorderColor = palette.ButtonBorderColor;
 
         var headerLayout = new TableLayoutPanel
         {
@@ -156,7 +165,7 @@ public sealed class RestReminderForm : Form
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
-        using var borderPen = new Pen(Color.FromArgb(214, 214, 214));
+        using var borderPen = new Pen(_borderColor);
         e.Graphics.DrawRectangle(borderPen, 0, 0, ClientSize.Width - 1, ClientSize.Height - 1);
     }
 
