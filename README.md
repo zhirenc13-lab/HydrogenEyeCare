@@ -20,6 +20,10 @@
 - 配置保存到 `%LOCALAPPDATA%\HydrogenEyeCare\config.json`
 - 错误日志保存到 `%LOCALAPPDATA%\HydrogenEyeCare\error.log`
 - 使用系统提示音作为临时休息提示音
+- 界面主题：森林绿、迷雾蓝、暗岩灰
+- 关于窗口显示版本、GitHub 链接、今日成功远眺次数和动态评语
+- 今日远眺统计仅内存保存，程序退出或跨零点清零
+- `error.log` 超过 5MB 时自动清空重写
 
 ## 开发运行
 
