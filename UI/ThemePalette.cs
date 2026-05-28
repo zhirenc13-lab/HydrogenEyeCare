@@ -19,6 +19,20 @@ public sealed record ThemePalette(
     {
         return theme switch
         {
+            AppTheme.ForestGreen => new ThemePalette(
+                theme,
+                "森林绿",
+                Color.FromArgb(244, 250, 244),
+                Color.FromArgb(185, 215, 189),
+                Color.FromArgb(23, 59, 39),
+                Color.FromArgb(31, 138, 76),
+                Color.FromArgb(78, 111, 90),
+                Color.FromArgb(228, 243, 230),
+                Color.FromArgb(169, 205, 176),
+                Color.FromArgb(31, 94, 54),
+                Color.FromArgb(238, 246, 240),
+                Color.FromArgb(200, 223, 204),
+                Color.FromArgb(35, 115, 68)),
             AppTheme.MistBlue => new ThemePalette(
                 theme,
                 "迷雾蓝",
@@ -47,20 +61,7 @@ public sealed record ThemePalette(
                 Color.FromArgb(236, 238, 238),
                 Color.FromArgb(196, 202, 202),
                 Color.FromArgb(51, 59, 62)),
-            _ => new ThemePalette(
-                AppTheme.ForestGreen,
-                "森林绿",
-                Color.FromArgb(244, 250, 244),
-                Color.FromArgb(185, 215, 189),
-                Color.FromArgb(23, 59, 39),
-                Color.FromArgb(31, 138, 76),
-                Color.FromArgb(78, 111, 90),
-                Color.FromArgb(228, 243, 230),
-                Color.FromArgb(169, 205, 176),
-                Color.FromArgb(31, 94, 54),
-                Color.FromArgb(238, 246, 240),
-                Color.FromArgb(200, 223, 204),
-                Color.FromArgb(35, 115, 68))
+            _ => throw new ArgumentOutOfRangeException(nameof(theme), theme, null)
         };
     }
 }

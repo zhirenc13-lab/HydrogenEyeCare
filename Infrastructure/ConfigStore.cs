@@ -16,22 +16,32 @@ public sealed class ConfigStore
             AppPaths.EnsureAppDataDirectory();
             if (!File.Exists(AppPaths.ConfigFilePath))
             {
-                return new AppConfig();
+                return CreateDefaultConfig();
             }
 
             var json = File.ReadAllText(AppPaths.ConfigFilePath);
-            return JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
+            var config = JsonSerializer.Deserialize<AppConfig>(json) ?? CreateDefaultConfig();
+            config.Normalize();
+            return config;
         }
         catch
         {
-            return new AppConfig();
+            return CreateDefaultConfig();
         }
     }
 
     public void Save(AppConfig config)
     {
         AppPaths.EnsureAppDataDirectory();
+        config.Normalize();
         var json = JsonSerializer.Serialize(config, JsonOptions);
         File.WriteAllText(AppPaths.ConfigFilePath, json);
+    }
+
+    private static AppConfig CreateDefaultConfig()
+    {
+        var config = new AppConfig();
+        config.Normalize();
+        return config;
     }
 }
