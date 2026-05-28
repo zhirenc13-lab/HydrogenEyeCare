@@ -30,4 +30,8 @@
     <Compile Remove="HydrogenEyeCare.Tests\**\*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="HydrogenEyeCare.Tests" />
+  </ItemGroup>
+
 </Project>

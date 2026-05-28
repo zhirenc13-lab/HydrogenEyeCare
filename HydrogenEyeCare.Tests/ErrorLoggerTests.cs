@@ -38,6 +38,35 @@ public sealed class ErrorLoggerTests : IDisposable
         Assert.Contains("append marker", text);
     }
 
+    [Fact]
+    public void LogCreatesFileWhenItDoesNotExist()
+    {
+        var logger = new ErrorLogger(_logPath);
+
+        logger.Log(new InvalidOperationException("create marker"));
+
+        Assert.True(File.Exists(_logPath));
+        var text = File.ReadAllText(_logPath);
+        Assert.Contains("create marker", text);
+    }
+
+    [Fact]
+    public void LogAppendsWhenFileIsExactlyFiveMb()
+    {
+        using (var stream = new FileStream(_logPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+        {
+            stream.SetLength(5L * 1024L * 1024L);
+        }
+
+        var logger = new ErrorLogger(_logPath);
+
+        logger.Log(new InvalidOperationException("boundary marker"));
+
+        Assert.True(new FileInfo(_logPath).Length > 5L * 1024L * 1024L);
+        var text = File.ReadAllText(_logPath);
+        Assert.Contains("boundary marker", text);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

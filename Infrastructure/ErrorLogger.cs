@@ -10,7 +10,7 @@ public sealed class ErrorLogger
     {
     }
 
-    public ErrorLogger(string logPath)
+    internal ErrorLogger(string logPath)
     {
         _logPath = logPath;
     }
