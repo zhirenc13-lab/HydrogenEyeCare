@@ -10,17 +10,14 @@ public sealed class ConfigStore
     };
 
     private readonly string _configFilePath;
-    private readonly Action<string> _ensureDirectory;
-
     public ConfigStore()
-        : this(AppPaths.ConfigFilePath, path => Directory.CreateDirectory(path))
+        : this(AppPaths.ConfigFilePath)
     {
     }
 
-    public ConfigStore(string configFilePath, Action<string> ensureDirectory)
+    public ConfigStore(string configFilePath)
     {
         _configFilePath = configFilePath;
-        _ensureDirectory = ensureDirectory;
     }
 
     public AppConfig Load()
@@ -57,7 +54,7 @@ public sealed class ConfigStore
         var directoryPath = Path.GetDirectoryName(_configFilePath);
         if (!string.IsNullOrWhiteSpace(directoryPath))
         {
-            _ensureDirectory(directoryPath);
+            Directory.CreateDirectory(directoryPath);
         }
     }
 

@@ -11,7 +11,7 @@ public sealed class ConfigStoreTests
         var configFilePath = Path.Combine(tempDir.Path, "config.json");
         File.WriteAllText(configFilePath, """{"Theme":999}""");
 
-        var store = new ConfigStore(configFilePath, _ => { });
+        var store = new ConfigStore(configFilePath);
 
         var config = store.Load();
 
@@ -23,7 +23,7 @@ public sealed class ConfigStoreTests
     {
         using var tempDir = new TempDirectory();
         var configFilePath = Path.Combine(tempDir.Path, "config.json");
-        var store = new ConfigStore(configFilePath, path => Directory.CreateDirectory(path));
+        var store = new ConfigStore(configFilePath);
         var config = new AppConfig
         {
             Theme = (AppTheme)999
