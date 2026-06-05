@@ -10,6 +10,8 @@ public static class AppPaths
 
     public static string ErrorLogPath => Path.Combine(AppDataDirectory, "error.log");
 
+    public static string DailyStatsFilePath => Path.Combine(AppDataDirectory, "daily-stats.json");
+
     public static void EnsureAppDataDirectory()
     {
         Directory.CreateDirectory(AppDataDirectory);

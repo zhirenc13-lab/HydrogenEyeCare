@@ -197,6 +197,7 @@ public sealed class TrayAppContext : ApplicationContext
         }
 
         var form = new RestReminderForm(e.Duration, e.CanDelay, e.RemainingDelays, CurrentThemePalette);
+        var restSessionId = Guid.NewGuid();
         form.RestCompleted += (_, _) =>
         {
             if (!_config.Muted)
@@ -204,7 +205,7 @@ public sealed class TrayAppContext : ApplicationContext
                 _soundPlayer.PlayRestEnded();
             }
 
-            _dailyRestStats.IncrementSuccessfulRest();
+            _dailyRestStats.MarkRestSessionCompleted(restSessionId);
             _controller.CompleteRest();
         };
         form.DelayRequested += (_, _) => _controller.DelayRest();
@@ -222,8 +223,19 @@ public sealed class TrayAppContext : ApplicationContext
 
     private void ResetAfterSystemRest()
     {
+        if (!ShouldResetWorkCycleAfterSystemRest(_controller.State))
+        {
+            UpdateTrayStatus();
+            return;
+        }
+
         _restForm?.Close();
         _controller.ResetWorkCycle();
+    }
+
+    internal static bool ShouldResetWorkCycleAfterSystemRest(AppState state)
+    {
+        return state != AppState.Paused;
     }
 
     private void UpdateTrayStatus()

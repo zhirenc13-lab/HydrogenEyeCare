@@ -3,7 +3,7 @@ namespace HydrogenEyeCare;
 public sealed class RestReminderForm : Form
 {
     private const int WindowWidth = 560;
-    private const int WindowHeight = 260;
+    private const int WindowHeight = 300;
 
     private static readonly string[] Prompts =
     [
@@ -34,16 +34,17 @@ public sealed class RestReminderForm : Form
         BackColor = palette.WindowBackColor;
         Opacity = 0.96;
         ClientSize = new Size(WindowWidth, WindowHeight);
+        MinimumSize = new Size(WindowWidth, WindowHeight);
         Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         AutoScaleMode = AutoScaleMode.Dpi;
-        Padding = new Padding(24);
+        Padding = new Padding(26);
 
         var titleLabel = new Label
         {
             AutoSize = false,
             Text = "休息一下",
-            Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold, GraphicsUnit.Point),
-            ForeColor = Color.FromArgb(32, 32, 32),
+            Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold, GraphicsUnit.Point),
+            ForeColor = palette.TitleColor,
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleLeft
         };
@@ -52,8 +53,8 @@ public sealed class RestReminderForm : Form
         {
             AutoSize = false,
             TextAlign = ContentAlignment.MiddleRight,
-            Font = new Font("Segoe UI", 30F, FontStyle.Bold, GraphicsUnit.Point),
-            ForeColor = Color.FromArgb(38, 38, 38),
+            Font = new Font("Segoe UI", 34F, FontStyle.Bold, GraphicsUnit.Point),
+            ForeColor = palette.CountdownColor,
             Dock = DockStyle.Fill
         };
 
@@ -62,7 +63,7 @@ public sealed class RestReminderForm : Form
             AutoSize = false,
             Text = Prompts[Random.Shared.Next(Prompts.Length)],
             Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Regular, GraphicsUnit.Point),
-            ForeColor = Color.FromArgb(82, 82, 82),
+            ForeColor = palette.PromptColor,
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleLeft
         };
@@ -74,54 +75,58 @@ public sealed class RestReminderForm : Form
             Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Regular, GraphicsUnit.Point),
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            MinimumSize = new Size(240, 48),
-            Padding = new Padding(14, 6, 14, 6),
+            MinimumSize = new Size(280, 52),
+            Padding = new Padding(16, 8, 16, 8),
             Anchor = AnchorStyles.Left | AnchorStyles.Top,
-            Margin = new Padding(0, 10, 0, 0)
+            Margin = new Padding(0, 4, 0, 0),
+            BackColor = palette.ButtonBackColor,
+            ForeColor = palette.ButtonTextColor,
+            FlatStyle = FlatStyle.Flat
         };
+        _delayButton.FlatAppearance.BorderColor = palette.ButtonBorderColor;
         _delayButton.Click += (_, _) =>
         {
             DelayRequested?.Invoke(this, EventArgs.Empty);
             Close();
         };
 
-        titleLabel.ForeColor = palette.TitleColor;
-        _countdownLabel.ForeColor = palette.CountdownColor;
-        promptLabel.ForeColor = palette.PromptColor;
-        _delayButton.BackColor = palette.ButtonBackColor;
-        _delayButton.ForeColor = palette.ButtonTextColor;
-        _delayButton.FlatStyle = FlatStyle.Flat;
-        _delayButton.FlatAppearance.BorderColor = palette.ButtonBorderColor;
-
         var headerLayout = new TableLayoutPanel
         {
-            Dock = DockStyle.Top,
-            Height = 104,
+            Dock = DockStyle.Fill,
             ColumnCount = 2,
             RowCount = 1,
             Margin = Padding.Empty,
             Padding = Padding.Empty
         };
-        headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65F));
-        headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
+        headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62F));
+        headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38F));
         headerLayout.Controls.Add(titleLabel, 0, 0);
         headerLayout.Controls.Add(_countdownLabel, 1, 0);
 
-        var contentLayout = new TableLayoutPanel
+        var buttonPanel = new Panel
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 2,
             Margin = Padding.Empty,
             Padding = Padding.Empty
         };
-        contentLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 48F));
-        contentLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 52F));
-        contentLayout.Controls.Add(promptLabel, 0, 0);
-        contentLayout.Controls.Add(_delayButton, 0, 1);
+        buttonPanel.Controls.Add(_delayButton);
 
-        Controls.Add(contentLayout);
-        Controls.Add(headerLayout);
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty
+        };
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 118F));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 58F));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        layout.Controls.Add(headerLayout, 0, 0);
+        layout.Controls.Add(promptLabel, 0, 1);
+        layout.Controls.Add(buttonPanel, 0, 2);
+
+        Controls.Add(layout);
 
         _timer = new System.Windows.Forms.Timer
         {
