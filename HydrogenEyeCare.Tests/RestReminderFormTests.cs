@@ -57,6 +57,21 @@ public sealed class RestReminderFormTests
     }
 
     [Fact]
+    public void ReminderStateStartsConfirmationWindowWhenRestCountdownEnds()
+    {
+        var state = RestReminderForm.GetReminderState(
+            elapsed: TimeSpan.FromSeconds(20),
+            restDuration: TimeSpan.FromSeconds(20),
+            confirmationDuration: TimeSpan.FromSeconds(10),
+            canDelay: true,
+            remainingDelays: 2);
+
+        Assert.Equal(RestReminderPrimaryAction.Complete, state.PrimaryAction.Action);
+        Assert.Equal(10, state.DisplaySeconds);
+        Assert.False(state.ShouldAutoClose);
+    }
+
+    [Fact]
     public void ReminderStateAutoClosesAfterConfirmationWindow()
     {
         var state = RestReminderForm.GetReminderState(

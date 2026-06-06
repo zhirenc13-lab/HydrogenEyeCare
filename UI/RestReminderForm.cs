@@ -143,6 +143,8 @@ public sealed class RestReminderForm : Form
 
     public event EventHandler? DelayRequested;
 
+    public event EventHandler? CompletionExpired;
+
     protected override bool ShowWithoutActivation => true;
 
     protected override CreateParams CreateParams
@@ -228,6 +230,7 @@ public sealed class RestReminderForm : Form
         if (state.ShouldAutoClose)
         {
             _timer.Stop();
+            CompletionExpired?.Invoke(this, EventArgs.Empty);
             Close();
             return;
         }

@@ -209,6 +209,7 @@ public sealed class TrayAppContext : ApplicationContext
             _controller.CompleteRest();
         };
         form.DelayRequested += (_, _) => _controller.DelayRest();
+        form.CompletionExpired += (_, _) => _controller.CompleteRest();
         form.FormClosed += (_, _) =>
         {
             if (ReferenceEquals(_restForm, form))
