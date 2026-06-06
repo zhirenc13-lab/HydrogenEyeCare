@@ -18,13 +18,19 @@ public sealed class RestReminderForm : Form
     private readonly TimeSpan _duration;
     private readonly DateTime _startedAt;
     private readonly Label _countdownLabel;
-    private readonly Button _delayButton;
+    private readonly Button _primaryActionButton;
+    private readonly bool _canDelay;
+    private readonly int _remainingDelays;
     private readonly Color _borderColor;
+    private RestReminderPrimaryAction _primaryAction;
+    private bool _completionRaised;
 
     public RestReminderForm(TimeSpan duration, bool canDelay, int remainingDelays, ThemePalette palette)
     {
         _duration = duration;
         _startedAt = DateTime.UtcNow;
+        _canDelay = canDelay;
+        _remainingDelays = remainingDelays;
         _borderColor = palette.BorderColor;
 
         FormBorderStyle = FormBorderStyle.None;
@@ -68,10 +74,8 @@ public sealed class RestReminderForm : Form
             TextAlign = ContentAlignment.MiddleLeft
         };
 
-        _delayButton = new Button
+        _primaryActionButton = new Button
         {
-            Text = canDelay ? $"延迟 5 分钟（剩 {remainingDelays} 次）" : "已达到上限",
-            Enabled = canDelay,
             Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Regular, GraphicsUnit.Point),
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
@@ -83,12 +87,8 @@ public sealed class RestReminderForm : Form
             ForeColor = palette.ButtonTextColor,
             FlatStyle = FlatStyle.Flat
         };
-        _delayButton.FlatAppearance.BorderColor = palette.ButtonBorderColor;
-        _delayButton.Click += (_, _) =>
-        {
-            DelayRequested?.Invoke(this, EventArgs.Empty);
-            Close();
-        };
+        _primaryActionButton.FlatAppearance.BorderColor = palette.ButtonBorderColor;
+        _primaryActionButton.Click += (_, _) => HandlePrimaryActionClick();
 
         var headerLayout = new TableLayoutPanel
         {
@@ -109,7 +109,7 @@ public sealed class RestReminderForm : Form
             Margin = Padding.Empty,
             Padding = Padding.Empty
         };
-        buttonPanel.Controls.Add(_delayButton);
+        buttonPanel.Controls.Add(_primaryActionButton);
 
         var layout = new TableLayoutPanel
         {
@@ -155,6 +155,24 @@ public sealed class RestReminderForm : Form
         }
     }
 
+    internal static RestReminderPrimaryActionState GetPrimaryActionState(
+        TimeSpan remaining,
+        bool canDelay,
+        int remainingDelays)
+    {
+        if (remaining <= TimeSpan.Zero)
+        {
+            return new RestReminderPrimaryActionState(RestReminderPrimaryAction.Complete, "完成", Enabled: true);
+        }
+
+        return canDelay
+            ? new RestReminderPrimaryActionState(
+                RestReminderPrimaryAction.Delay,
+                $"延迟 5 分钟（剩 {remainingDelays} 次）",
+                Enabled: true)
+            : new RestReminderPrimaryActionState(RestReminderPrimaryAction.Delay, "已达到上限", Enabled: false);
+    }
+
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -179,13 +197,38 @@ public sealed class RestReminderForm : Form
         var remaining = _duration - (DateTime.UtcNow - _startedAt);
         if (remaining <= TimeSpan.Zero)
         {
-            _countdownLabel.Text = "0";
+            _timer.Stop();
+            remaining = TimeSpan.Zero;
+        }
+
+        _countdownLabel.Text = Math.Ceiling(remaining.TotalSeconds).ToString("0");
+        ApplyPrimaryActionState(GetPrimaryActionState(remaining, _canDelay, _remainingDelays));
+    }
+
+    private void ApplyPrimaryActionState(RestReminderPrimaryActionState state)
+    {
+        _primaryAction = state.Action;
+        _primaryActionButton.Text = state.Text;
+        _primaryActionButton.Enabled = state.Enabled;
+    }
+
+    private void HandlePrimaryActionClick()
+    {
+        if (_primaryAction == RestReminderPrimaryAction.Complete)
+        {
+            if (_completionRaised)
+            {
+                return;
+            }
+
+            _completionRaised = true;
             RestCompleted?.Invoke(this, EventArgs.Empty);
             Close();
             return;
         }
 
-        _countdownLabel.Text = Math.Ceiling(remaining.TotalSeconds).ToString("0");
+        DelayRequested?.Invoke(this, EventArgs.Empty);
+        Close();
     }
 
     private void PositionNearTray()
@@ -197,3 +240,14 @@ public sealed class RestReminderForm : Form
         Location = new Point(area.Right - Width - 16, area.Bottom - Height - 16);
     }
 }
+
+internal enum RestReminderPrimaryAction
+{
+    Delay,
+    Complete
+}
+
+internal sealed record RestReminderPrimaryActionState(
+    RestReminderPrimaryAction Action,
+    string Text,
+    bool Enabled);
