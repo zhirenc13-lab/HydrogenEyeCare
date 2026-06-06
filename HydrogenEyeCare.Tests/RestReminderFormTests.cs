@@ -40,4 +40,34 @@ public sealed class RestReminderFormTests
         Assert.Equal("完成", action.Text);
         Assert.True(action.Enabled);
     }
+
+    [Fact]
+    public void ReminderStateWaitsForCompletionDuringConfirmationWindow()
+    {
+        var state = RestReminderForm.GetReminderState(
+            elapsed: TimeSpan.FromSeconds(25),
+            restDuration: TimeSpan.FromSeconds(20),
+            confirmationDuration: TimeSpan.FromSeconds(10),
+            canDelay: true,
+            remainingDelays: 2);
+
+        Assert.Equal(RestReminderPrimaryAction.Complete, state.PrimaryAction.Action);
+        Assert.Equal(5, state.DisplaySeconds);
+        Assert.False(state.ShouldAutoClose);
+    }
+
+    [Fact]
+    public void ReminderStateAutoClosesAfterConfirmationWindow()
+    {
+        var state = RestReminderForm.GetReminderState(
+            elapsed: TimeSpan.FromSeconds(30),
+            restDuration: TimeSpan.FromSeconds(20),
+            confirmationDuration: TimeSpan.FromSeconds(10),
+            canDelay: true,
+            remainingDelays: 2);
+
+        Assert.Equal(RestReminderPrimaryAction.Complete, state.PrimaryAction.Action);
+        Assert.Equal(0, state.DisplaySeconds);
+        Assert.True(state.ShouldAutoClose);
+    }
 }

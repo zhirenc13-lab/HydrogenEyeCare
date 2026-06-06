@@ -4,6 +4,7 @@ public sealed class RestReminderForm : Form
 {
     private const int WindowWidth = 560;
     private const int WindowHeight = 300;
+    private static readonly TimeSpan CompletionConfirmationDuration = TimeSpan.FromSeconds(10);
 
     private static readonly string[] Prompts =
     [
@@ -173,6 +174,29 @@ public sealed class RestReminderForm : Form
             : new RestReminderPrimaryActionState(RestReminderPrimaryAction.Delay, "已达到上限", Enabled: false);
     }
 
+    internal static RestReminderState GetReminderState(
+        TimeSpan elapsed,
+        TimeSpan restDuration,
+        TimeSpan confirmationDuration,
+        bool canDelay,
+        int remainingDelays)
+    {
+        var restRemaining = restDuration - elapsed;
+        if (restRemaining > TimeSpan.Zero)
+        {
+            return new RestReminderState(
+                DisplaySeconds: (int)Math.Ceiling(restRemaining.TotalSeconds),
+                PrimaryAction: GetPrimaryActionState(restRemaining, canDelay, remainingDelays),
+                ShouldAutoClose: false);
+        }
+
+        var confirmationRemaining = confirmationDuration - (elapsed - restDuration);
+        return new RestReminderState(
+            DisplaySeconds: Math.Max(0, (int)Math.Ceiling(confirmationRemaining.TotalSeconds)),
+            PrimaryAction: GetPrimaryActionState(TimeSpan.Zero, canDelay, remainingDelays),
+            ShouldAutoClose: confirmationRemaining <= TimeSpan.Zero);
+    }
+
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -194,15 +218,22 @@ public sealed class RestReminderForm : Form
 
     private void UpdateCountdown()
     {
-        var remaining = _duration - (DateTime.UtcNow - _startedAt);
-        if (remaining <= TimeSpan.Zero)
+        var state = GetReminderState(
+            DateTime.UtcNow - _startedAt,
+            _duration,
+            CompletionConfirmationDuration,
+            _canDelay,
+            _remainingDelays);
+
+        if (state.ShouldAutoClose)
         {
             _timer.Stop();
-            remaining = TimeSpan.Zero;
+            Close();
+            return;
         }
 
-        _countdownLabel.Text = Math.Ceiling(remaining.TotalSeconds).ToString("0");
-        ApplyPrimaryActionState(GetPrimaryActionState(remaining, _canDelay, _remainingDelays));
+        _countdownLabel.Text = state.DisplaySeconds.ToString("0");
+        ApplyPrimaryActionState(state.PrimaryAction);
     }
 
     private void ApplyPrimaryActionState(RestReminderPrimaryActionState state)
@@ -251,3 +282,8 @@ internal sealed record RestReminderPrimaryActionState(
     RestReminderPrimaryAction Action,
     string Text,
     bool Enabled);
+
+internal sealed record RestReminderState(
+    int DisplaySeconds,
+    RestReminderPrimaryActionState PrimaryAction,
+    bool ShouldAutoClose);
