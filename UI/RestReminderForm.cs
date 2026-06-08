@@ -22,6 +22,7 @@ public sealed class RestReminderForm : Form
     private readonly Button _primaryActionButton;
     private readonly bool _canDelay;
     private readonly int _remainingDelays;
+    private readonly ThemePalette _palette;
     private readonly Color _borderColor;
     private RestReminderPrimaryAction _primaryAction;
     private bool _completionRaised;
@@ -32,6 +33,7 @@ public sealed class RestReminderForm : Form
         _startedAt = DateTime.UtcNow;
         _canDelay = canDelay;
         _remainingDelays = remainingDelays;
+        _palette = palette;
         _borderColor = palette.BorderColor;
 
         FormBorderStyle = FormBorderStyle.None;
@@ -242,6 +244,9 @@ public sealed class RestReminderForm : Form
     private void ApplyPrimaryActionState(RestReminderPrimaryActionState state)
     {
         _primaryAction = state.Action;
+        _countdownLabel.ForeColor = state.Action == RestReminderPrimaryAction.Complete
+            ? _palette.ConfirmationCountdownColor
+            : _palette.CountdownColor;
         _primaryActionButton.Text = state.Text;
         _primaryActionButton.Enabled = state.Enabled;
     }

@@ -1,5 +1,7 @@
 namespace HydrogenEyeCare.Tests;
 
+using System.Drawing;
+
 public sealed class ThemePaletteTests
 {
     [Theory]
@@ -22,5 +24,17 @@ public sealed class ThemePaletteTests
 
         Assert.Equal("theme", exception.ParamName);
         Assert.Equal(theme, exception.ActualValue);
+    }
+
+    [Theory]
+    [InlineData(AppTheme.ForestGreen, 0x08, 0x91, 0xB2)]
+    [InlineData(AppTheme.MistBlue, 0x8B, 0x5C, 0xF6)]
+    [InlineData(AppTheme.RockGray, 0x25, 0x63, 0xEB)]
+    public void PaletteHasConfirmationCountdownColor(AppTheme theme, int red, int green, int blue)
+    {
+        var palette = ThemePalette.FromTheme(theme);
+
+        Assert.Equal(Color.FromArgb(red, green, blue), palette.ConfirmationCountdownColor);
+        Assert.NotEqual(palette.CountdownColor, palette.ConfirmationCountdownColor);
     }
 }
