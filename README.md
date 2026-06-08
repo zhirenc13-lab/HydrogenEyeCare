@@ -35,32 +35,7 @@
 
 ## 功能特性
 
-- 启动后直接驻留系统托盘
-- 单实例运行
-- 20 分钟工作计时
-- 20 秒提醒窗口，结束后提供 10 秒完成确认
-- 点击“完成”后才计入今日成功远眺次数
-- 未确认会自动关闭且不计数
-- 延迟 5 分钟，最多连续延迟 2 次
-- 托盘菜单：
-  - 开机自启
-  - 静音
-  - 界面主题
-  - 暂停 / 恢复计时
-  - 立即休息
-  - 关于
-  - 退出程序
-- 三套提醒窗口主题：
-  - 森林绿
-  - 迷雾蓝
-  - 暗岩灰
-- 关于窗口显示：
-  - 当前版本
-  - GitHub 项目主页
-  - 今日成功远眺次数
-  - 动态评语
-- 支持 200% 系统缩放下的提醒窗口和关于窗口布局
-- `error.log` 超过 5MB 时自动清空重写
+氢护眼会在后台计时，每工作约 20 分钟后提醒你远眺休息 20 秒。
 
 ## 数据与隐私
 
@@ -76,23 +51,23 @@
 
 说明：
 
-- `config.json` 保存开机自启、静音、主题等配置。
+- `config.json` 保存开机自启、静音等配置。
 - `daily-stats.json` 保存当天成功远眺次数，程序退出后保留，跨零点清零。
 - `error.log` 只在程序捕获异常时写入，用于排查问题。
 
 ## 下载与升级
 
-请在 GitHub Releases 下载最新版：
+请在 GitHub Releases 下载最新版 zip 包：
 
 [HydrogenEyeCare Releases](https://github.com/zhirenc13-lab/HydrogenEyeCare/releases)
 
-推荐下载 zip 包，解压后运行其中的 `氢护眼.exe`。
+下载后解压到本地文件夹，再运行其中的程序。
 
 升级方式：
 
 1. 从托盘菜单退出正在运行的氢护眼。
 2. 下载新版 zip 并解压。
-3. 用新版 `氢护眼.exe` 覆盖旧文件，或放到新的目录运行。
+3. 用新版解压内容覆盖旧文件夹，或放到新的目录运行。
 4. 重新启动。
 
 升级不会清空设置和今日统计，因为配置与统计保存在 `%LOCALAPPDATA%\HydrogenEyeCare`。
@@ -102,7 +77,6 @@
 - C# / .NET 10
 - WinForms
 - 目标框架：`net10.0-windows`
-- 发布目标：`win-x64` 自包含单文件
 
 ## 开发运行
 
@@ -120,18 +94,6 @@ dotnet build
 
 ```powershell
 dotnet test .\HydrogenEyeCare.Tests\HydrogenEyeCare.Tests.csproj
-```
-
-## 发布单文件 exe
-
-```powershell
-dotnet publish -c Release -o .\artifacts\publish\win-x64-v1.5-stable
-```
-
-发布产物位于：
-
-```text
-artifacts\publish\win-x64-v1.5-stable\氢护眼.exe
 ```
 
 ## 许可证
