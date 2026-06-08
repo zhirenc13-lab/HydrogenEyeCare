@@ -5,6 +5,7 @@ public sealed class RestReminderForm : Form
     private const int WindowWidth = 560;
     private const int WindowHeight = 300;
     private static readonly TimeSpan CompletionConfirmationDuration = TimeSpan.FromSeconds(10);
+    private const string ConfirmationPrompt = "完成远眺后点击确认";
 
     private static readonly string[] Prompts =
     [
@@ -19,9 +20,11 @@ public sealed class RestReminderForm : Form
     private readonly TimeSpan _duration;
     private readonly DateTime _startedAt;
     private readonly Label _countdownLabel;
+    private readonly Label _promptLabel;
     private readonly Button _primaryActionButton;
     private readonly bool _canDelay;
     private readonly int _remainingDelays;
+    private readonly string _restPrompt;
     private readonly ThemePalette _palette;
     private readonly Color _borderColor;
     private RestReminderPrimaryAction _primaryAction;
@@ -33,6 +36,7 @@ public sealed class RestReminderForm : Form
         _startedAt = DateTime.UtcNow;
         _canDelay = canDelay;
         _remainingDelays = remainingDelays;
+        _restPrompt = Prompts[Random.Shared.Next(Prompts.Length)];
         _palette = palette;
         _borderColor = palette.BorderColor;
 
@@ -52,7 +56,7 @@ public sealed class RestReminderForm : Form
         {
             AutoSize = false,
             Text = "休息一下",
-            Font = new Font("Microsoft YaHei UI", 13F, FontStyle.Bold, GraphicsUnit.Point),
+            Font = new Font("Microsoft YaHei UI", 15F, FontStyle.Bold, GraphicsUnit.Point),
             ForeColor = palette.TitleColor,
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleLeft
@@ -67,10 +71,10 @@ public sealed class RestReminderForm : Form
             Dock = DockStyle.Fill
         };
 
-        var promptLabel = new Label
+        _promptLabel = new Label
         {
             AutoSize = false,
-            Text = Prompts[Random.Shared.Next(Prompts.Length)],
+            Text = _restPrompt,
             Font = new Font("Microsoft YaHei UI", 11F, FontStyle.Regular, GraphicsUnit.Point),
             ForeColor = palette.PromptColor,
             Dock = DockStyle.Fill,
@@ -126,7 +130,7 @@ public sealed class RestReminderForm : Form
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 58F));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         layout.Controls.Add(headerLayout, 0, 0);
-        layout.Controls.Add(promptLabel, 0, 1);
+        layout.Controls.Add(_promptLabel, 0, 1);
         layout.Controls.Add(buttonPanel, 0, 2);
 
         Controls.Add(layout);
@@ -201,6 +205,11 @@ public sealed class RestReminderForm : Form
             ShouldAutoClose: confirmationRemaining <= TimeSpan.Zero);
     }
 
+    internal static string GetPromptText(RestReminderPrimaryAction action, string restPrompt)
+    {
+        return action == RestReminderPrimaryAction.Complete ? ConfirmationPrompt : restPrompt;
+    }
+
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -247,6 +256,7 @@ public sealed class RestReminderForm : Form
         _countdownLabel.ForeColor = state.Action == RestReminderPrimaryAction.Complete
             ? _palette.ConfirmationCountdownColor
             : _palette.CountdownColor;
+        _promptLabel.Text = GetPromptText(state.Action, _restPrompt);
         _primaryActionButton.Text = state.Text;
         _primaryActionButton.Enabled = state.Enabled;
     }

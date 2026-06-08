@@ -85,4 +85,20 @@ public sealed class RestReminderFormTests
         Assert.Equal(0, state.DisplaySeconds);
         Assert.True(state.ShouldAutoClose);
     }
+
+    [Fact]
+    public void PromptTextUsesConfirmationCopyAfterCountdownEnds()
+    {
+        Assert.Equal(
+            "完成远眺后点击确认",
+            RestReminderForm.GetPromptText(RestReminderPrimaryAction.Complete, "看一看 6 米外的远方"));
+    }
+
+    [Fact]
+    public void PromptTextKeepsRestCopyBeforeCountdownEnds()
+    {
+        Assert.Equal(
+            "看一看 6 米外的远方",
+            RestReminderForm.GetPromptText(RestReminderPrimaryAction.Delay, "看一看 6 米外的远方"));
+    }
 }
